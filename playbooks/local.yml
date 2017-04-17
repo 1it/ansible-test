@@ -1,0 +1,59 @@
+---
+- hosts: local
+  pre_tasks:
+  # Ensure ansible-agent exists and the cronjob is set
+      - name: Copy ansible-agent to /usr/local/bin/
+        copy:
+            src: "{{ project_dir }}/ansible-agent"
+            dest: /usr/local/bin/ansible-agent
+            remote_src: True
+            owner: root
+            group: root
+            mode: 0755
+
+      - name: Set cronfile env SHELL
+        cron:
+            name: 'SHELL'
+            env: yes
+            value: '/bin/bash'
+            user: root
+            cron_file: ansible
+
+      - name: Set update-git env PATH
+        cron:
+            name: 'PATH'
+            env: yes
+            value: '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+            user: root
+            cron_file: ansible
+
+      - name: Set ansible-agent repo-up
+        cron:
+            name: 'Run local update repo'
+            job: "/usr/local/bin/ansible-agent repo-up"
+            user: root
+            minute: 00
+            hour: "*/2"
+            cron_file: ansible
+
+      - name: Set ansible-agent scripts-up
+        cron:
+            name: 'Run local update scripts'
+            job: "/usr/local/bin/ansible-agent scripts-up"
+            user: root
+            minute: 00
+            hour: "*/2"
+            cron_file: ansible
+
+      - name: Set ansible-agent play
+        cron:
+            name: 'Run local update all'
+            job: "/usr/local/bin/ansible-agent play"
+            user: root
+            minute: 05
+            hour: "*/2"
+            cron_file: ansible
+
+  roles:
+    - common
+    - cron
