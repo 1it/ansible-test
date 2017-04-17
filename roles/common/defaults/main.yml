@@ -1,0 +1,63 @@
+country: ru
+do_upgrade: False
+
+locales:
+    - en_US.UTF-8
+    - ru_RU.CP1251
+    - ru_RU.UTF-8
+
+system_limits:
+  ulimits:
+    - 'root soft nofile 65536'
+    - 'root hard nofile 65536'
+    - '* soft nofile 65536'
+    - '* hard nofile 65536'
+
+apt_packages:
+    - apt-transport-https
+    - build-essential
+    - bash-completion
+    - curl
+    - fail2ban
+    - git
+    - tig
+    - htop
+    - iputils-ping
+    - jnettop
+    - less
+    - logrotate
+    - lsb-release
+    - lsof
+    - man-db
+    - mc
+    - netcat
+    - postfix
+    - rsyslog
+    - screen
+    - strace
+    - sysstat
+    - traceroute
+    - vim-common
+    - whois
+
+yum_packages:
+    - bash-completion
+    - curl
+    - fail2ban
+    - git
+    - htop
+    - PyYAML
+    - libyaml
+    - mc
+    - python
+    - python-pip
+    - python-devel
+    - python-jinja2
+    - python-markupsafe
+    - python2-crypto
+    - python2-ecdsa
+    - python2-paramiko
+    - openssl-devel
+    - sshpass
+    - vim-common
+

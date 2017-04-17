@@ -1,0 +1,35 @@
+---
+- name: Set common cronjobs | Application
+  cron:
+    name='{{ item.name }}'
+    job='{{ item.job }}'
+    user='{{ item.user | default('web') }}'
+    minute='{{ item.minute }}'
+    hour='{{ item.hour | default('*') }}'
+    weekday='{{ item.weekday | default('*') }}'
+    cron_file='{{ item.file | default('vh') }}'
+  with_items: '{{ cron_common_jobs }}'
+  when: cron_common_jobs is defined
+
+- name: Set custom cronjobs | Application
+  cron:
+    name='{{ item.name }}'
+    job='{{ item.job }}'
+    user='{{ item.user | default(web) }}'
+    minute='{{ item.minute }}'
+    hour='{{ item.hour | default('*') }}'
+    weekday='{{ item.weekday | default('*') }}'
+    cron_file='{{ item.file | default('vh') }}'
+  with_items: '{{ cron_custom_jobs }}'
+  when: cron_custom_jobs is defined
+
+- name: Set common cronjobs | Backup
+  cron:
+    name='{{ item.name }}'
+    job='{{ item.job }}'
+    user='{{ item.user | default('root') }}'
+    minute='{{ item.minute }}'
+    hour='{{ item.hour | default('*') }}'
+    weekday='{{ item.weekday | default('*') }}'
+    cron_file='{{ item.file | default('backup') }}'
+  with_items: '{{ cron_backup_jobs }}'

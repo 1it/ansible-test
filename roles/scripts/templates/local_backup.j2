@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# Read system env vars
+. /etc/profile
+
+# Numer of backup copies (days) to hold
+COUNT={{ backups_count }}
+
+# Get hostname
+HOST="$(hostname)"
+
+# Get time
+NOW="$(date +"%Y-%m-%d")"
+TIME="$(date +"%H-%M-%S")"
+
+# Common backup dir
+DEST="/backup"
+
+# Main directory where backup will be stored
+MBD="$DEST/$HOST/$NOW"
+
+LOG="/var/log/local-backup.log"
+
+mkdir -p $MBD
+
+touch $LOG
+
+echo "Local backup has been start at $NOW $TIME on $HOST" >> $LOG
+tar -czf $MBD/upload.$HOST.tgz /var/www/upload.$HOST &>> $LOG
+tar -czf $MBD/etc.tgz /etc &>> $LOG
+tar -czf $MBD/root.tgz /root &>> $LOG
+tar -czf $MBD/home.tgz /home --exclude=/home/backup &>> $LOG
+tar -czf $MBD/www.tgz /var/www --exclude=/var/www/upload.$HOST/* &>> $LOG
+
+echo "Delete old local backups" >> $LOG
+find $DEST/$HOST/ -type f -mtime +$COUNT -delete
+find $DEST/$HOST/ -type d -empty -delete
+
+# End backup
+echo "Local-backup has been done at $NOW $TIME on $HOST" >> $LOG

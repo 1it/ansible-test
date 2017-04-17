@@ -1,0 +1,8 @@
+---
+cron_common_jobs: []
+
+cron_backup_jobs:
+    - { name: 'mysql_backup.sh', job: 'bash /root/scripts/mysql_backup.sh', minute: 0, hour: 2 }
+    - { name: 'local_backup.sh', job: 'bash /root/scripts/local_backup.sh', minute: 30, hour: 2, weekday: 6 }
+
+cron_custom_jobs: []

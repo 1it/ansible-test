@@ -1,0 +1,94 @@
+#!/bin/bash
+# Shell script to backup MySql database
+
+# Read system env vars
+. /etc/profile
+
+# Backup files count
+COUNT={{ backups_count }}
+
+# DO NOT BACKUP these databases
+IGNORE="(test|information_schema|performance_schema|mysql)"
+
+USER=root
+PASS=
+DIR="/backup/mysql"
+CURRENT="$DIR/current"
+ARCHIVE="$DIR/archive"
+HOST="$(hostname)"
+LOG="/var/log/mysql-backup.log"
+TIMENAME=`date +%Y-%m-%d`
+TIMEDUMP=`date '+%T %x'`
+DOW=`date +%u`
+
+# Check mysql server running
+mysqld=`which mysqld`
+
+if ps aux |grep $mysqld |grep -vqs grep; then
+    echo "Mysql server running. OK"
+else
+# echo "Mysql server not running. Bye."
+    exit 0;
+fi
+
+mkdir -p $DIR
+mkdir -p $CURRENT
+mkdir -p $ARCHIVE
+
+touch $LOG
+
+echo "=== Starting prerotate old dumps at $TIMEDUMP ===" >> $LOG
+OLD=`find $DIR -maxdepth 1 -name '*.dump.gz'`
+OLD_DUMPS=`find $CURRENT -maxdepth 1 -name '*.dump.gz'`
+
+if [ ! -z "$OLD" ]; then
+        for file in $OLD; do
+            mv $file $ARCHIVE/
+        done
+fi
+
+if [ ! -z "$OLD_DUMPS" ]; then
+        for file in $OLD_DUMPS; do
+            mv $file $ARCHIVE/
+        done
+fi
+
+echo "=== Starting backup at $TIMEDUMP ===" >> $LOG
+
+# Get dabases list
+if [ "$PASS" == "" ]; then
+        db=`mysql -u$USER -Bse 'show databases' | egrep -v $IGNORE`
+else
+        db=`mysql -u$USER -p$PASS -Bse 'show databases' | egrep -v $IGNORE`
+fi
+
+# Do backup
+for n in $db; do
+    echo "MySQL backup has been start at $TIMEDUMP : $TIMENAME on $HOST db: $n" >> $LOG
+
+    if [ "$PASS" == "" ]; then
+        if
+                mysqldump --triggers --set-gtid-purged=OFF -R -E -u$USER $n | gzip -c > "$CURRENT/mysql-$HOST-$n-$TIMENAME-db.dump.gz" 2>/dev/null; then
+                echo "[Mysqldump complete at $TIMEDUMP]" >> $LOG;
+        else
+                echo "[ERROR]" >> $LOG;
+        fi
+    fi
+
+    if [ "$PASS" != "" ]; then
+        if
+                mysqldump --triggers --set-gtid-purged=OFF -R -E -u$USER -p$PASS $n | gzip -c > "$CURRENT/mysql-$HOST-$n-$TIMENAME-db.dump.gz" 2>/dev/null; then
+                echo "[Mysqldump complete at $TIMEDUMP]" >> $LOG;
+        else
+                echo "[ERROR]" >> $LOG;
+        fi
+    fi
+done
+
+# Rotate backups
+find $ARCHIVE -type f -mtime +$COUNT -delete
+# find $DIR/ -type d -empty -delete
+
+echo $TIMEDUMP >> $LOG
+echo '=== Backup done ===' >> $LOG
+

@@ -1,0 +1,24 @@
+---
+- name: Ensure scripts dir exists
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+    owner: root
+    group: root
+  with_items:
+    - '/root/scripts'
+    - '/backup'
+
+- name: Copy backup scripts
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: 0750
+    owner: root
+    group: root
+    backup: yes
+  with_items:
+    - { src: mysql_backup.j2, dest: /root/scripts/mysql_backup.sh }
+    - { src: local_backup.j2, dest: /root/scripts/local_backup.sh }
+
